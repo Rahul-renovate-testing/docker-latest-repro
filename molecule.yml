@@ -1,0 +1,59 @@
+---
+name: 'molecule'
+on:  # yamllint disable-line rule:truthy
+  pull_request:
+    branches:
+      - 'main'
+
+  push:
+    branches:
+      - 'main'
+
+  workflow_dispatch:
+    inputs:
+      repoCache:
+        description: 'Reset or disable the cache?'
+        type: 'choice'
+        default: 'enabled'
+        options:
+          - 'enabled'
+          - 'disabled'
+          - 'reset'
+
+permissions:
+  contents: 'read'
+
+# Adding these as env variables makes it easy to re-use them in different steps and in bash.
+env:
+  cache_archive: 'molecule_cache.tar.gz'
+  # This is the dir renovate provides
+  # If we set our own directory via cacheDir, we can run into permissions issues.
+  # It is also possible to cache a higher level of the directory, but it has minimal benefit. While renovate execution
+  # time gets faster, it also takes longer to upload the cache as it grows bigger.
+  cache_dir: '/tmp/.cache/molecule'
+  # This can be manually changed to bust the cache if neccessary.
+  cache_key: 'molecule-cache'
+
+jobs:
+  molecule:
+    permissions:
+      contents: 'write'
+    runs-on: 'ubuntu-latest'
+    container:
+      image: '${{ matrix.container.image }}'
+      credentials:
+        username: '${{ secrets.crc_username }}'
+        password: '${{ secrets.crc_password }}'
+      options: '--privileged'
+    strategy:
+      matrix:
+        container:
+          #
+          # UBI 8
+          #
+
+          # yamllint disable-line rule:line-length
+          - image: 'registry.redhat.io/ansible-automation-platform/ee-minimal-rhel8:2.16.6@sha256:22e6773b832d01602a6d822f8c947c79d46c6b932a466874776929adf39e7ed2'
+            cache_key_suffix: 'rhel8-2.16'
+            # renovate yaml: datasource=pypi
+            molecule: '24.6.0'
