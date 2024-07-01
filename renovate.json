@@ -1,3 +1,14 @@
 {
-  "prHourlyLimit": 10
+  "prHourlyLimit": 10,
+  "customManagers": [{
+      "description": "Extract in-line dependencies defined in YAML, e.g. molecule: 'X.Y.Z'",
+      "customType": "regex",
+      "fileMatch": [
+        "^.github/workflows/.*?\\.ya?ml$"
+      ],
+      "matchStrings": [
+        "# renovate yaml: datasource=(?<datasource>.*?)( versioning=(?<versioning>.*?))?\\s+(?<depName>[^:]+):\\s+?'(?:(?<currentValue>[^'\"\\s]*))?"
+      ],
+      "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
+  }]
 }
